@@ -1,0 +1,257 @@
+
+/****************************************
+*           Global style
+/****************************************/
+
+:root{
+    --main-color: #4E3022;
+    --secondary-color: #dd4939;
+    --base-font: "Open Sans";
+    --serif-font: "Playfair Display";
+}
+
+button{
+    padding: 0; 
+}
+
+img{
+    max-width: 100%;
+}
+a {
+    color: var(--dark-color);
+    text-decoration: none;
+}
+a:hover{
+    text-decoration: none;
+     color: var(--main-color);
+}
+p{
+    line-height: 1.7;
+}
+body {
+    font-family: var(--base-font);
+    font-size: 14px;
+    color: var(--dark-color);
+    transition: all 0.3s ease-in-out;
+    overflow-x: hidden;
+}
+/* h1,h2,h3,h4,h5,h6{
+    font-family: var(--serif-font);
+} */
+.u-flex {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display:    -moz-box;
+    display: -ms-flexbox;
+    display:         flex;
+}
+
+.u-flex--wrap {
+    -webkit-flex-wrap: wrap;
+        -ms-flex-wrap: wrap;
+            flex-wrap: wrap;
+}
+/****************************************
+*           Header
+/****************************************/
+
+
+/* mobie menu */
+
+@media (max-width: 900px){
+      /*.menu__bar{display: block;}*/
+      /*    nav.dr_header__nav ul li {*/
+      /*      display: none;*/
+      /*  }*/
+      /*  nav.dr_header__nav ul li:last-child {*/
+      /*    display: block;*/
+      /*  }*/
+    
+}
+/****************************************
+*           Intro
+/****************************************/
+
+/****************************************
+*           Header
+/****************************************/
+.footer{
+  
+}
+.footer__bottom{
+  background: #fff;
+  text-align: center;
+  border-top: 1px solid #efefef;
+  padding: 30px 0;
+}
+
+.footer__bottom p{
+  margin-bottom: 0;
+  line-height: 2;
+}
+
+
+
+/*sec__pastry*/
+
+
+
+/****************************************
+*           Menu Page
+/****************************************/
+.page__menu__banner{
+  max-height: 260px;
+  overflow: hidden;
+}
+.row10{
+  margin: 0 -10px;
+}
+.section--home{
+  padding-bottom: 20px;
+}
+.section:last-child{
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.col-content{
+  flex: calc(100% - 235px);
+  padding: 0 10px;
+}
+
+
+
+.products{
+  margin: 0 -7px;
+}
+.product a{
+  /* background: #e80000; */
+  display: block;
+}
+.product figure{
+  margin-bottom: 0;
+}
+.product{
+  width: 33.333%;
+  max-width: 33.333%;
+  padding: 7px;
+}
+.product .content {
+  padding: 15px 15px;
+}
+.product .content h5 {
+  font-size: calc(1em + 1.5vmin);
+  /* margin-top: 4px; */
+  /* margin-bottom: 10px; */
+  /* font-weight: 600; */
+}
+@media (max-width: 5000px) {
+    .product {
+        width: 50%;
+        max-width: 50%;
+    }
+    .col-content {
+        flex: 0 0 100%;
+    }
+}
+
+.menu__page__content{
+  /* background: #F5F5F5; */
+  padding-top: 0px;
+  padding-bottom: 40px;
+}
+.has-shadow {
+  -webkit-box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  background: #fff;
+}
+
+
+/*
+  cart aside
+*/
+
+/*cart-aside*/
+  
+/*modal*/
+button:focus{
+  outline: none;
+}
+  
+  
+  
+/*checkout*/
+
+
+/*page__user*/
+/*modal__init*/
+/*.init{*/
+  /*overflow: hidden;*/
+/*}*/
+
+
+/*thank you page*/
+
+
+/*About*/
+
+
+/*page__contact*/
+/*contact page*/
+
+
+/****************************************
+
+*           Gallery Page
+
+/****************************************/
+
+
+/*page__pastry*/
+/*language__menu*/
+.language__menu{
+  position: fixed;
+  bottom: 0;
+  right: 30px;
+  z-index: 999999;
+}
+.language__menu button {
+  color: #fff;
+  background-color: #262626;
+  border-color: #262626;
+}
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  float: left;
+  width: 100%;
+  padding: .5rem 0;
+  margin: .125rem 0 0;
+  font-size: 1rem;
+  color: #212529;
+  text-align: left;
+  list-style: none;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: .25rem;
+  min-width: initial;
+}
+
+
+
+
+/*responsive*/
+
+
+/*steps*/
+
+
+/*custom*/
+
+.product .content{
+  /* max-width: 300px; */
+}
