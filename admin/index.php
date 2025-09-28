@@ -79,7 +79,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             </main>
         </div>
     </div>
-    
+
     <!-- Modals and Toasts -->
     <div id="modal-container"></div>
     <div id="toast-container"></div>
@@ -104,7 +104,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     const navSettings = document.getElementById('nav-settings');
     const modalContainer = document.getElementById('modal-container');
     const loader = document.getElementById('loader');
-    
+
     // --- API & UTILITIES ---
     async function apiRequest(endpoint, options = {}) {
         loader.classList.remove('hidden');
@@ -129,7 +129,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         toast.className = `toast toast-${type}`;
         toast.textContent = message;
         toastContainer.appendChild(toast);
-        
+
         requestAnimationFrame(() => toast.classList.add('show'));
 
         setTimeout(() => {
@@ -156,7 +156,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         document.getElementById(`nav-${view}`).classList.add('active');
         render();
     }
-    
+
     navDashboard.addEventListener('click', (e) => { e.preventDefault(); navigate('dashboard'); });
     navItems.addEventListener('click', (e) => { e.preventDefault(); navigate('items'); });
     navCategories.addEventListener('click', (e) => { e.preventDefault(); navigate('categories'); });
@@ -226,7 +226,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         const lowerCaseSearch = searchTerm.toLowerCase();
 
         menuData.categories.forEach(category => {
-            const filteredItems = (menuData.items[category.id] || []).filter(item => 
+            const filteredItems = (menuData.items[category.id] || []).filter(item =>
                 item.name.en.toLowerCase().includes(lowerCaseSearch) ||
                 item.name.ku.toLowerCase().includes(lowerCaseSearch) ||
                 item.name.ar.toLowerCase().includes(lowerCaseSearch)
@@ -248,8 +248,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         if(!searchTerm) initItemSortable();
         document.getElementById('search-input').addEventListener('input', (e) => renderItemsView(e.target.value));
     }
-    
-    // NOTE: This now takes the item object directly. `index` is no longer needed.
+
     function renderItemCard(item, categoryId) {
         const pricesHtml = (item.prices || []).map(p => `
             <span class="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">${p.size}: ${p.price}</span>
@@ -285,8 +284,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         bindCategoryEventListeners();
         initCategorySortable();
     }
-    
-    // NOTE: This now takes the category object directly. `index` is no longer needed.
+
     function renderCategoryCard(category) {
          return `
             <div class="bg-white rounded-lg shadow-md overflow-hidden" data-category-id="${category.db_id}">
@@ -339,9 +337,50 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         `;
         document.getElementById('translations-form').addEventListener('submit', handleSaveTranslations);
     }
-    
+
     // --- MODAL & FORM RENDERING / LOGIC ---
-    // (This section is very similar to the original file, with minor tweaks for new API)
+    function createCategoryForm(category = {}) {
+        const headerPrices = category.header_prices && category.header_prices.length > 0 ? category.header_prices : [{ size: '', price: '' }];
+        return `
+        <form class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+            <input type="hidden" name="db_id" value="${category.db_id || ''}">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Image</label>
+                <div class="mt-1 flex items-center">
+                    <img id="image-preview" src="${category.image ? '../' + category.image : 'https://placehold.co/100x100/e2e8f0/e2e8f0'}" class="image-preview mr-4">
+                    <input type="file" name="image_file" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                </div>
+                <input type="hidden" name="image" value="${category.image || ''}">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Category Layout</label>
+                <select name="layout" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <option value="default-category" ${category.layout === 'default-category' ? 'selected' : ''}>Default</option>
+                    <option value="full-width-header" ${category.layout === 'full-width-header' ? 'selected' : ''}>Full-Width Header</option>
+                </select>
+            </div>
+            <div><label class="block text-sm font-medium text-gray-700">Unique ID (e.g., "starters")</label><input type="text" name="id" value="${category.id || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" ${category.id ? 'readonly' : 'required'}></div>
+            <div><label class="block text-sm font-medium text-gray-700">Name (English)</label><input type="text" name="name_en" value="${category.name?.en || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></div>
+            <div><label class="block text-sm font-medium text-gray-700">Name (Kurdish)</label><input type="text" name="name_ku" value="${category.name?.ku || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></div>
+            <div><label class="block text-sm font-medium text-gray-700">Name (Arabic)</label><input type="text" name="name_ar" value="${category.name?.ar || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></div>
+            <div id="category-prices-section">
+                <label class="block text-sm font-medium text-gray-700">Header Prices (Optional)</label>
+                <p class="text-xs text-gray-500">Prices that apply to the whole category (e.g., for different sizes of coffee).</p>
+                <div id="cat-prices-container" class="mt-1 space-y-3">
+                    ${headerPrices.map((p, i) => `
+                        <div class="price-row flex items-center gap-2 pt-3">
+                            <input type="text" name="header_size_${i}" value="${p.size}" placeholder="Size (e.g., 12oz)" class="block w-1/2 rounded-md border-gray-300 shadow-sm">
+                            <input type="text" name="header_price_${i}" value="${p.price}" placeholder="Price" class="block w-1/2 rounded-md border-gray-300 shadow-sm">
+                            <button type="button" class="remove-price-btn text-red-500 hover:text-red-700 ${headerPrices.length === 1 && !p.size && !p.price ? 'hidden' : ''}">&times;</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <button type="button" id="add-cat-price-btn" class="mt-2 text-sm text-indigo-600 hover:text-indigo-800">+ Add Header Price</button>
+            </div>
+        </form>
+        `;
+    }
+
     function createItemForm(item = {}, categoryId = '') {
         const prices = item.prices && item.prices.length > 0 ? item.prices : [{ size: 'Standard', price: '' }];
         return `
@@ -365,13 +404,15 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
                 <select name="layout" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                     <option value="grid-item" ${item.layout === 'grid-item' ? 'selected' : ''}>Standard (Grid Item)</option>
                     <option value="list-item" ${item.layout === 'list-item' ? 'selected' : ''}>Full-Width Card (List)</option>
+                    <option value="highlight-item" ${item.layout === 'highlight-item' ? 'selected' : ''}>Highlighted Item</option>
+                    <option value="compact-list-item" ${item.layout === 'compact-list-item' ? 'selected' : ''}>Compact List Item</option>
                     <option value="flavor-item" ${item.layout === 'flavor-item' ? 'selected' : ''}>Flavor Style (No Price)</option>
                 </select>
             </div>
             <div><label class="block text-sm font-medium text-gray-700">Name (English)</label><input type="text" name="name_en" value="${item.name?.en || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></div>
             <div><label class="block text-sm font-medium text-gray-700">Name (Kurdish)</label><input type="text" name="name_ku" value="${item.name?.ku || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></div>
             <div><label class="block text-sm font-medium text-gray-700">Name (Arabic)</label><input type="text" name="name_ar" value="${item.name?.ar || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></div>
-            
+
             <div><label class="block text-sm font-medium text-gray-700">Description (English)</label><textarea name="desc_en" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${item.description?.en || ''}</textarea></div>
             <div><label class="block text-sm font-medium text-gray-700">Description (Kurdish)</label><textarea name="desc_ku" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${item.description?.ku || ''}</textarea></div>
             <div><label class="block text-sm font-medium text-gray-700">Description (Arabic)</label><textarea name="desc_ar" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">${item.description?.ar || ''}</textarea></div>
@@ -392,58 +433,81 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         </form>
         `;
     }
-    
-    // (createCategoryForm, form parsing, etc. remain very similar)
-    // ... [ The rest of the modal and form handling logic from the original file goes here ] ...
-    // ... [ It's mostly unchanged, except for using apiRequest for submissions ] ...
-        
+
+    function parseItemForm(form) {
+        const formData = new FormData(form);
+        const categoryId = formData.get('category_id');
+        const categoryDbId = menuData.categories.find(c => c.id === categoryId)?.db_id;
+        const apiFormData = new FormData();
+        for (const [key, value] of formData.entries()) {
+            apiFormData.append(key, value);
+        }
+        apiFormData.set('category_db_id', categoryDbId);
+        if (form.querySelector('input[name="image_file"]').files[0]) {
+            apiFormData.set('image_file', form.querySelector('input[name="image_file"]').files[0]);
+        } else {
+            apiFormData.delete('image_file');
+        }
+        const prices = [];
+        form.querySelectorAll('#prices-container .price-row').forEach(row => {
+            const size = row.querySelector('input[name^="size_"]').value;
+            const price = row.querySelector('input[name^="price_"]').value;
+            if (size && price) prices.push({ size, price });
+        });
+        apiFormData.set('prices', JSON.stringify(prices));
+        return { formData: apiFormData };
+    }
+
+    function parseCategoryForm(form) {
+        const apiFormData = new FormData(form);
+        if (form.querySelector('input[name="image_file"]').files[0]) {
+            apiFormData.set('image_file', form.querySelector('input[name="image_file"]').files[0]);
+        } else {
+            apiFormData.delete('image_file');
+        }
+        const prices = [];
+        form.querySelectorAll('#cat-prices-container .price-row').forEach(row => {
+            const size = row.querySelector('input[name^="header_size_"]').value;
+            const price = row.querySelector('input[name^="header_price_"]').value;
+            if (size && price) prices.push({ size, price });
+        });
+        apiFormData.set('header_prices', JSON.stringify(prices));
+        return { formData: apiFormData };
+    }
+
     // --- EVENT HANDLERS ---
-    
     async function handleSaveTranslations(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
-        
-        // Reconstruct the translations object
         const updatedTranslations = {
             en: { ...menuData.translations.en, branch_name: data.en_branch_name },
             ar: { ...menuData.translations.ar, branch_name: data.ar_branch_name },
             ku: { ...menuData.translations.ku, branch_name: data.ku_branch_name }
         };
-
         const payload = new FormData();
         payload.append('translations', JSON.stringify(updatedTranslations));
-
         try {
             await apiRequest('../api.php?action=saveTranslations', { method: 'POST', body: payload });
             showToast('Translations saved successfully!');
-            menuData.translations = updatedTranslations; // Update local state
-        } catch (error) {
-            // Error toast is shown by apiRequest
-        }
+            menuData.translations = updatedTranslations;
+        } catch (error) {}
     }
-
 
     // --- SORTABLE (DRAG & DROP) LOGIC ---
     function initCategorySortable() {
         const container = document.getElementById('categories-container');
         if (container) {
             const s = Sortable.create(container, {
-                animation: 150,
-                handle: '.handle',
-                ghostClass: 'sortable-ghost',
-                chosenClass: 'sortable-chosen',
+                animation: 150, handle: '.handle', ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
                 onEnd: async (evt) => {
-                    const orderData = Array.from(evt.target.children).map((el, index) => ({
-                        id: el.dataset.categoryId,
-                        order: index
-                    }));
+                    const orderData = Array.from(evt.target.children).map((el, index) => ({ id: el.dataset.categoryId, order: index }));
                     const payload = new FormData();
                     payload.append('order_data', JSON.stringify(orderData));
                     payload.append('type', 'categories');
                     await apiRequest('../api.php?action=updateOrder', { method: 'POST', body: payload });
                     showToast('Category order saved!');
-                    await initializeApp(); // Refresh data to be safe
+                    await initializeApp();
                 },
             });
             sortableInstances.push(s);
@@ -455,21 +519,15 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             const container = document.getElementById(`items-container-${category.id}`);
             if (container) {
                 const s = Sortable.create(container, {
-                    animation: 150,
-                    handle: '.handle',
-                    ghostClass: 'sortable-ghost',
-                    chosenClass: 'sortable-chosen',
+                    animation: 150, handle: '.handle', ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
                     onEnd: async (evt) => {
-                         const orderData = Array.from(evt.target.children).map((el, index) => ({
-                            id: el.dataset.itemId,
-                            order: index
-                        }));
+                         const orderData = Array.from(evt.target.children).map((el, index) => ({ id: el.dataset.itemId, order: index }));
                         const payload = new FormData();
                         payload.append('order_data', JSON.stringify(orderData));
                         payload.append('type', 'items');
                         await apiRequest('../api.php?action=updateOrder', { method: 'POST', body: payload });
                         showToast('Item order saved!');
-                        await initializeApp(); // Refresh
+                        await initializeApp();
                     },
                 });
                 sortableInstances.push(s);
@@ -481,33 +539,29 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         sortableInstances.forEach(s => s.destroy());
         sortableInstances = [];
     }
-    
-    
+
     // --- BINDINGS & STARTUP ---
-    function bindItemEventListeners() { 
+    function bindItemEventListeners() {
         const addItemBtn = document.getElementById('add-item-btn');
         if (addItemBtn) addItemBtn.addEventListener('click', handleAddItem);
-        document.querySelectorAll('.edit-item-btn').forEach(btn => btn.addEventListener('click', handleEditItem)); 
-        document.querySelectorAll('.delete-item-btn').forEach(btn => btn.addEventListener('click', handleDeleteItem)); 
+        document.querySelectorAll('.edit-item-btn').forEach(btn => btn.addEventListener('click', handleEditItem));
+        document.querySelectorAll('.delete-item-btn').forEach(btn => btn.addEventListener('click', handleDeleteItem));
     }
-    function bindCategoryEventListeners() { 
-        document.getElementById('add-category-btn').addEventListener('click', handleAddCategory); 
-        document.querySelectorAll('.edit-category-btn').forEach(btn => btn.addEventListener('click', handleEditCategory)); 
+    function bindCategoryEventListeners() {
+        document.getElementById('add-category-btn').addEventListener('click', handleAddCategory);
+        document.querySelectorAll('.edit-category-btn').forEach(btn => btn.addEventListener('click', handleEditCategory));
         document.querySelectorAll('.delete-category-btn').forEach(btn => btn.addEventListener('click', handleDeleteCategory));
     }
-    
-    // Placeholder functions for CRUD operations. These will be very similar to your original file,
-    // but they will use the new `apiRequest` function and FormData.
+
     async function handleAddItem() {
-        // Find first category to pre-select
         const firstCatId = menuData.categories.length > 0 ? menuData.categories[0].id : '';
-        const result = await renderModal({ title: 'Add New Item', body: createItemForm({}, firstCatId), confirmText: 'Add Item' }, setupItemForm);
-        if (result) {
-            const { item, formData } = parseItemForm(result);
+        const form = await renderModal({ title: 'Add New Item', body: createItemForm({}, firstCatId), confirmText: 'Add Item' }, setupItemForm);
+        if (form) {
+            const { formData } = parseItemForm(form);
             try {
                 await apiRequest('../api.php?action=saveItem', { method: 'POST', body: formData });
                 showToast('Item added successfully!');
-                await initializeApp(); // Refresh all data
+                await initializeApp();
             } catch (e) {}
         }
     }
@@ -515,12 +569,10 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         const itemId = e.target.dataset.itemId;
         const categoryId = e.target.dataset.categoryId;
         const item = menuData.items[categoryId].find(i => i.id == itemId);
-
-        const result = await renderModal({ title: 'Edit Menu Item', body: createItemForm(item, categoryId), confirmText: 'Save Changes' }, setupItemForm);
-        
-        if (result) {
-            const { item: updatedItem, formData } = parseItemForm(result);
-            formData.append('id', itemId); // Add ID for editing
+        const form = await renderModal({ title: 'Edit Menu Item', body: createItemForm(item, categoryId), confirmText: 'Save Changes' }, setupItemForm);
+        if (form) {
+            const { formData } = parseItemForm(form);
+            formData.append('id', itemId);
             try {
                 await apiRequest('../api.php?action=saveItem', { method: 'POST', body: formData });
                 showToast('Item saved successfully!');
@@ -541,18 +593,102 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             } catch (e) {}
         }
     }
-    // ... (Similar placeholder functions for handleAddCategory, handleEditCategory, handleDeleteCategory)
-    
-    // --- Abridged for brevity: The full modal logic (renderModal, closeModal) ---
-    // --- and form setup logic (setupItemForm, etc.) is nearly identical to your previous file ---
-    // --- It has been omitted here but should be included in the final file ---
-    
-    // --- [ PASTE a large chunk of the modal/form code from the old file here ] ---
-    // This includes: renderModal, closeModal, createCategoryForm, setupImageUpload, handlePriceForm,
-    // setupCategoryForm, setupItemForm, parseItemForm, parseCategoryForm
-    // and the category CRUD handlers (handleAddCategory, etc.) adapted for apiRequest
-    // --- [ END PASTE SECTION ] ---
-        async function renderModal(config, setupFn) {
+
+    async function handleAddCategory() {
+        const form = await renderModal({ title: 'Add New Category', body: createCategoryForm(), confirmText: 'Add Category' }, setupCategoryForm);
+        if (form) {
+            const { formData } = parseCategoryForm(form);
+            try {
+                await apiRequest('../api.php?action=saveCategory', { method: 'POST', body: formData });
+                showToast('Category added successfully!');
+                await initializeApp();
+            } catch (e) {}
+        }
+    }
+    async function handleEditCategory(e) {
+        const categoryId = e.target.dataset.categoryId;
+        const category = menuData.categories.find(c => c.db_id == categoryId);
+        const form = await renderModal({ title: 'Edit Category', body: createCategoryForm(category), confirmText: 'Save Changes' }, setupCategoryForm);
+        if (form) {
+            const { formData } = parseCategoryForm(form);
+            try {
+                await apiRequest('../api.php?action=saveCategory', { method: 'POST', body: formData });
+                showToast('Category saved successfully!');
+                await initializeApp();
+            } catch (e) {}
+        }
+    }
+    async function handleDeleteCategory(e) {
+        const categoryId = e.target.dataset.categoryId;
+        const confirmed = await renderModal({ title: 'Delete Category', body: `<p>Are you sure? This is only possible if the category has no items.</p>`, confirmText: 'Delete' });
+        if (confirmed) {
+            const formData = new FormData();
+            formData.append('id', categoryId);
+            try {
+                await apiRequest('../api.php?action=deleteCategory', { method: 'POST', body: formData });
+                showToast('Category deleted.');
+                await initializeApp();
+            } catch (e) {}
+        }
+    }
+
+    function setupImageUpload(modalElement) {
+        const fileInput = modalElement.querySelector('input[type="file"][name="image_file"]');
+        const preview = modalElement.querySelector('#image-preview');
+        fileInput?.addEventListener('change', () => {
+            if (fileInput.files[0]) {
+                preview.src = URL.createObjectURL(fileInput.files[0]);
+            }
+        });
+    }
+
+    function handlePriceForm(modalElement, containerId, addButtonId, sizePrefix, pricePrefix) {
+        const container = modalElement.querySelector(`#${containerId}`);
+        const addBtn = modalElement.querySelector(`#${addButtonId}`);
+
+        const updateRemoveButtons = () => {
+            const rows = container.querySelectorAll('.price-row');
+            rows.forEach(row => {
+                row.querySelector('.remove-price-btn').classList.toggle('hidden', rows.length === 1);
+            });
+        };
+        container.addEventListener('click', e => {
+            if (e.target.classList.contains('remove-price-btn')) {
+                e.target.closest('.price-row').remove();
+                updateRemoveButtons();
+            }
+        });
+        addBtn.addEventListener('click', () => {
+            const newIndex = container.children.length;
+            const newRow = document.createElement('div');
+            newRow.className = 'price-row flex items-center gap-2 pt-3';
+            newRow.innerHTML = `
+                <input type="text" name="${sizePrefix}_${newIndex}" value="" placeholder="Size" class="block w-1/2 rounded-md border-gray-300 shadow-sm">
+                <input type="text" name="${pricePrefix}_${newIndex}" value="" placeholder="Price" class="block w-1/2 rounded-md border-gray-300 shadow-sm">
+                <button type="button" class="remove-price-btn text-red-500 hover:text-red-700">&times;</button>
+            `;
+            container.appendChild(newRow);
+            updateRemoveButtons();
+        });
+        updateRemoveButtons();
+    }
+
+    function setupItemForm(modalElement) {
+        setupImageUpload(modalElement);
+        handlePriceForm(modalElement, 'prices-container', 'add-price-btn', 'size', 'price');
+    }
+
+    function setupCategoryForm(modalElement) {
+        setupImageUpload(modalElement);
+        handlePriceForm(modalElement, 'cat-prices-container', 'add-cat-price-btn', 'header_size', 'header_price');
+        const idInput = modalElement.querySelector('input[name="id"]');
+        if (idInput.value) {
+            idInput.readOnly = true;
+            idInput.classList.add('bg-gray-100');
+        }
+    }
+
+    async function renderModal(config, setupFn) {
         const modalId = `modal-${Date.now()}`;
         modalContainer.innerHTML = `
             <div id="${modalId}" class="modal fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-40 p-4 opacity-0">
@@ -566,18 +702,23 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
                 </div>
             </div>`;
         const modalElement = document.getElementById(modalId);
+        const form = modalElement.querySelector('form');
+
         requestAnimationFrame(() => {
             modalElement.classList.remove('opacity-0');
             modalElement.querySelector('.modal-content').style.transform = 'scale(1)';
         });
+
         if (setupFn) setupFn(modalElement);
+
         return new Promise(resolve => {
             modalElement.querySelector('.confirm-btn').onclick = () => {
-                const form = modalElement.querySelector('form');
-                if (form && !form.checkValidity()) { form.reportValidity(); return; }
-                const data = form ? Object.fromEntries(new FormData(form).entries()) : true;
+                if (form && !form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
                 closeModal(modalElement);
-                resolve(data);
+                resolve(form || true);
             };
             modalElement.querySelector('.cancel-btn').onclick = () => { closeModal(modalElement); resolve(null); };
             modalElement.onclick = e => { if (e.target === modalElement) { closeModal(modalElement); resolve(null); } };
@@ -587,8 +728,6 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     function closeModal(modalElement) { if (!modalElement) return; modalElement.classList.add('opacity-0'); modalElement.querySelector('.modal-content').style.transform = 'scale(0.95)'; setTimeout(() => { modalContainer.innerHTML = ''; }, 250); }
 
     initializeApp();
-
 </script>
 </body>
 </html>
-
